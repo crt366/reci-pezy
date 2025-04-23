@@ -85,6 +85,9 @@ export async function searchRecipes(params: SearchRecipesParams): Promise<Recipe
   return response.json()
 }
 
+// Check the searchRecipesByIngredients function to ensure it's correctly formatted
+
+// The function should look like this:
 export async function searchRecipesByIngredients(ingredients: string[], number = 12): Promise<Recipe[]> {
   const searchParams = new URLSearchParams({
     apiKey: API_KEY as string,

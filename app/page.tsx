@@ -11,9 +11,13 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
 
+  // Check the handleSearch function to ensure it's correctly calling the API and handling the results
+
+  // The function should look like this:
   const handleSearch = async (ingredients: string[]) => {
     setIsLoading(true)
     try {
+      // Make sure this function call is correct
       const results = await searchRecipesByIngredients(ingredients)
 
       // Fetch additional details for each recipe to get summaries
