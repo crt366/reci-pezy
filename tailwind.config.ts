@@ -26,8 +26,18 @@ const config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#E26310",
+          DEFAULT: "#F28C28",
           foreground: "hsl(var(--primary-foreground))",
+          50: "#FEF5E7",
+          100: "#FDEAD0",
+          200: "#FBD5A1",
+          300: "#F9C072",
+          400: "#F7AB43",
+          500: "#F28C28",
+          600: "#D97016",
+          700: "#B35512",
+          800: "#8C3A0E",
+          900: "#65200A",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -42,7 +52,7 @@ const config = {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "#E26310",
+          DEFAULT: "#F28C28",
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
@@ -68,10 +78,37 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "pulse-subtle": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.8" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
+        "fade-in": "fade-in 0.5s ease-out",
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: "65ch",
+            color: "hsl(var(--foreground))",
+            a: {
+              color: "hsl(var(--primary))",
+              "&:hover": {
+                color: "hsl(var(--primary))",
+              },
+            },
+          },
+        },
+      },
+      boxShadow: {
+        soft: "0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)",
       },
     },
   },

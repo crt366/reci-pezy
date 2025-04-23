@@ -1,69 +1,120 @@
+"use client"
+
+import type React from "react"
+
 import Image from "next/image"
 import Link from "next/link"
-import { Clock, CheckCircle2 } from "lucide-react"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Heart, Clock, Users } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FavoriteButton } from "@/components/favorite-button"
+import { Button } from "@/components/ui/button"
 import type { Recipe } from "@/lib/spoonacular-api"
+import { useState, useEffect } from "react"
 
 interface RecipeCardProps {
   recipe: Recipe
-  showPantryBadge?: boolean
-  usedIngredients?: number
-  missedIngredients?: number
 }
 
-export function RecipeCard({ recipe, showPantryBadge = false, usedIngredients, missedIngredients }: RecipeCardProps) {
+export function RecipeCard({ recipe }: RecipeCardProps) {
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+
+  useEffect(() => {
+    // Check if recipe is in favorites
+    const storedFavorites = localStorage.getItem("favorites")
+    if (storedFavorites) {
+      const favorites = JSON.parse(storedFavorites)
+      setIsFavorite(favorites.some((fav: Recipe) => fav.id === recipe.id))
+    }
+  }, [recipe.id])
+
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const storedFavorites = localStorage.getItem("favorites")
+    let favorites: Recipe[] = storedFavorites ? JSON.parse(storedFavorites) : []
+
+    if (isFavorite) {
+      // Remove from favorites
+      favorites = favorites.filter((fav: Recipe) => fav.id !== recipe.id)
+    } else {
+      // Add to favorites
+      favorites.push(recipe)
+    }
+
+    localStorage.setItem("favorites", JSON.stringify(favorites))
+    setIsFavorite(!isFavorite)
+  }
+
   return (
-    <Card className="overflow-hidden h-full transition-all hover:shadow-md">
-      <Link href={`/recipe/${recipe.id}`} className="block">
+    <Card
+      className="overflow-hidden h-full card-hover bg-background/50 backdrop-blur-sm border-border/50"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Link href={`/recipe/${recipe.id}`} className="block h-full">
         <div className="aspect-video relative overflow-hidden">
           <Image
             src={recipe.image || "/placeholder.svg"}
             alt={recipe.title}
             fill
-            className="object-cover transition-transform hover:scale-105"
+            className={`object-cover transition-all duration-500 ${isHovered ? "scale-105" : "scale-100"}`}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          <div className="absolute top-2 right-2">
-            <FavoriteButton recipe={recipe} />
-          </div>
-          {showPantryBadge && (
-            <div className="absolute bottom-2 left-2">
-              <Badge className="bg-accent text-white flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" />
-                <span>Pantry Friendly</span>
-              </Badge>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+          <Button
+            variant="outline"
+            size="icon"
+            className={`absolute top-3 right-3 bg-white/90 hover:bg-white border-none shadow-md transition-transform duration-300 ${isFavorite ? "scale-110" : "scale-100"}`}
+            onClick={toggleFavorite}
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart className={`h-5 w-5 transition-colors ${isFavorite ? "fill-primary text-primary" : ""}`} />
+          </Button>
+
+          {(recipe.readyInMinutes || recipe.servings) && (
+            <div className="absolute bottom-3 left-3 flex gap-3">
+              {recipe.readyInMinutes && (
+                <Badge variant="outline" className="bg-black/70 text-white border-none shadow-sm backdrop-blur-sm">
+                  <Clock className="h-3.5 w-3.5 mr-1" />
+                  {recipe.readyInMinutes} min
+                </Badge>
+              )}
+              {recipe.servings && (
+                <Badge variant="outline" className="bg-black/70 text-white border-none shadow-sm backdrop-blur-sm">
+                  <Users className="h-3.5 w-3.5 mr-1" />
+                  {recipe.servings}
+                </Badge>
+              )}
             </div>
           )}
         </div>
-        <CardContent className="p-4">
-          <h3 className="font-semibold line-clamp-2 text-lg">{recipe.title}</h3>
+        <CardContent className="p-5">
+          <h3 className="font-semibold line-clamp-2 text-lg mb-3 group-hover:text-primary transition-colors">
+            {recipe.title}
+          </h3>
 
-          {(usedIngredients !== undefined || missedIngredients !== undefined) && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {usedIngredients !== undefined && usedIngredients > 0 && (
-                <Badge variant="outline" className="text-green-600 border-green-600">
-                  {usedIngredients} ingredients used
-                </Badge>
-              )}
-              {missedIngredients !== undefined && missedIngredients > 0 && (
-                <Badge variant="outline" className="text-muted-foreground">
-                  {missedIngredients} additional needed
-                </Badge>
-              )}
-            </div>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {recipe.usedIngredientCount !== undefined && (
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                {recipe.usedIngredientCount} ingredients used
+              </Badge>
+            )}
+            {recipe.missedIngredientCount !== undefined && recipe.missedIngredientCount > 0 && (
+              <Badge variant="outline" className="bg-muted">
+                {recipe.missedIngredientCount} more needed
+              </Badge>
+            )}
+          </div>
+
+          {recipe.summary && (
+            <p
+              className="text-sm text-muted-foreground line-clamp-3"
+              dangerouslySetInnerHTML={{ __html: recipe.summary }}
+            />
           )}
         </CardContent>
-        {recipe.readyInMinutes && (
-          <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <Clock className="mr-1 h-4 w-4" />
-              <span>{recipe.readyInMinutes} mins</span>
-            </div>
-            {recipe.servings && <div>{recipe.servings} servings</div>}
-          </CardFooter>
-        )}
       </Link>
     </Card>
   )

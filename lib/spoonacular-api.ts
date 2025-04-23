@@ -1,51 +1,38 @@
 // Spoonacular API service
 
-type SearchRecipesParams = {
-  query?: string
-  cuisine?: string
-  diet?: string
-  intolerances?: string
-  number?: number
-  offset?: number
-}
-
-type SearchByIngredientsParams = {
-  ingredients: string[]
-  number?: number
-  ranking?: 1 | 2 // 1 = maximize used ingredients, 2 = minimize missing ingredients
-  ignorePantry?: boolean
-}
-
-type RecipeSearchResponse = {
-  results: Recipe[]
-  offset: number
-  number: number
-  totalResults: number
-}
-
 export type Recipe = {
   id: number
   title: string
   image: string
-  imageType: string
-  readyInMinutes?: number
-  servings?: number
-  sourceUrl?: string
+  imageType?: string
   usedIngredientCount?: number
   missedIngredientCount?: number
+  missedIngredients?: Ingredient[]
+  usedIngredients?: Ingredient[]
+  unusedIngredients?: Ingredient[]
   likes?: number
+  readyInMinutes?: number
+  servings?: number
+  summary?: string
+}
+
+export type Ingredient = {
+  id: number
+  amount: number
+  unit: string
+  unitLong?: string
+  unitShort?: string
+  name: string
+  original: string
+  originalName?: string
+  meta?: string[]
+  image: string
 }
 
 export type RecipeDetail = Recipe & {
   summary: string
   instructions: string
-  extendedIngredients: {
-    id: number
-    original: string
-    amount: number
-    unit: string
-    name: string
-  }[]
+  extendedIngredients: Ingredient[]
   analyzedInstructions: {
     name: string
     steps: {
@@ -61,6 +48,22 @@ export type RecipeDetail = Recipe & {
   diets: string[]
   cuisines: string[]
   dishTypes: string[]
+}
+
+type SearchRecipesParams = {
+  query?: string
+  cuisine?: string
+  diet?: string
+  intolerances?: string
+  number?: number
+  offset?: number
+}
+
+type RecipeSearchResponse = {
+  results: Recipe[]
+  offset: number
+  number: number
+  totalResults: number
 }
 
 const API_KEY = process.env.SPOONACULAR_API_KEY
@@ -82,13 +85,13 @@ export async function searchRecipes(params: SearchRecipesParams): Promise<Recipe
   return response.json()
 }
 
-export async function searchRecipesByIngredients(params: SearchByIngredientsParams): Promise<Recipe[]> {
+export async function searchRecipesByIngredients(ingredients: string[], number = 12): Promise<Recipe[]> {
   const searchParams = new URLSearchParams({
     apiKey: API_KEY as string,
-    ingredients: params.ingredients.join(","),
-    number: params.number?.toString() || "12",
-    ranking: params.ranking?.toString() || "1",
-    ignorePantry: params.ignorePantry?.toString() || "false",
+    ingredients: ingredients.join(","),
+    number: number.toString(),
+    ranking: "1", // Maximize used ingredients
+    ignorePantry: "false",
   })
 
   const response = await fetch(`${BASE_URL}/recipes/findByIngredients?${searchParams.toString()}`)
